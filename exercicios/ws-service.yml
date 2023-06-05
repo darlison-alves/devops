@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ws-service
+  labels:
+    app: ws-service
+spec:
+  ports:
+    - port: 5001
+  selector:
+    app: ws-service
+  clusterIP: None
+
+
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ws-service-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-service
+  labels:
+    app: ws-service
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ws-service
+  template:
+    metadata:
+      labels:
+        app: ws-service
+    spec:
+      containers:
+      - image: nosilrad/ibb-ws:1.0
+        name: ws-service
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: changeme
+        ports:
+        - containerPort: 5001
+          name: ws-service
+        
+        volumeMounts:
+        - name: ws-service-volume
+          mountPath: /var/lib/app-ws
+        
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "rancher"
+      
+      volumes:
+      - name: ws-service-volume
+        persistentVolumeClaim:
+          claimName: ws-service-pvc
