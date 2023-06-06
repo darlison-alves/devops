@@ -7,7 +7,9 @@ metadata:
     app: ws-service
 spec:
   ports:
-    - port: 5001
+    - name: ws-service-port
+      port: 5001
+      targetPort: 5001
   selector:
     app: ws-service
   clusterIP: None
@@ -70,3 +72,19 @@ spec:
       - name: ws-service-volume
         persistentVolumeClaim:
           claimName: ws-service-pvc
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-web-ui
+  namespace: kube-system
+spec:
+  rules:
+  - host: api.rancher.ibigboss.click
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ws-service
+          servicePort: ws-service-port
